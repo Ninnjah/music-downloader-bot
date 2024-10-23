@@ -1,0 +1,31 @@
+[project]
+version = "1.0.0"
+name = "telegram-template"
+requires-python = ">=3.9"
+dependencies = [
+    "aiogram-dialog~=2.2.0",
+    "aiogram~=3.13.1",
+    "alembic~=1.13.1",
+    "adaptix~=3.0.0b8",
+    "SQLAlchemy~=2.0.30",
+    "PyYAML~=6.0.1",
+    "pydantic~=2.7.1",
+    "asyncpg~=0.29.0",
+    "redis~=5.0.4",
+    "python-dotenv~=1.0.1",
+    "cachetools~=5.3.3",
+    "fluent.runtime~=0.4.0",
+    "openpyxl~=3.1.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff~=0.4.5",
+]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.ruff]
+line-length = 110
+lint.extend-select = ["I"]

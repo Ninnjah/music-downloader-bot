@@ -1,0 +1,18 @@
+admin_list:
+ - 768602428
+bot_token: 123:abc
+database_url: postgresql+asyncpg://user:password@localhost/database
+
+redis:
+ enabled: true
+ prefix: tgbot
+ host: localhost
+ port: 6379
+ db: 0
+ password:
+
+webhook:
+ enabled: false
+ url: https://localhost
+ path: /tg_api/webhook
+ port: 8881
