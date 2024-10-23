@@ -15,33 +15,15 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 from aiogram_dialog import setup_dialogs
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from tgbot.config_reader import config
 from tgbot.fluent_loader import get_fluent_localization
 from tgbot.handlers import main_router
-from tgbot.routes.test import test_handler
-from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.media_group import AlbumMiddleware
 from tgbot.middlewares.role import RoleMiddleware
 from tgbot.middlewares.throttling import ThrottlingMiddleware
 
 logger = logging.getLogger(__name__)
-
-
-def create_pool(db_url: str, echo: bool = False) -> AsyncEngine:
-    engine = create_async_engine(
-        db_url,
-        poolclass=AsyncAdaptedQueuePool,
-        pool_recycle=60 * 5,
-        pool_pre_ping=True,
-        pool_size=5,
-        max_overflow=10,
-        echo=echo,
-    )
-
-    return engine
 
 
 def setup_logger(level: int = logging.INFO):
@@ -54,6 +36,8 @@ def setup_logger(level: int = logging.INFO):
 
 
 def setup_bot() -> Tuple[Dispatcher, Bot]:
+    config.download_path.mkdir(parents=True, exist_ok=True)
+
     if config.redis.enabled:
         storage = RedisStorage(
             redis.Redis(
@@ -67,7 +51,6 @@ def setup_bot() -> Tuple[Dispatcher, Bot]:
     else:
         storage = MemoryStorage()
 
-    pool = create_pool(config.database_url)
     bot = Bot(
         token=config.bot_token,
         default=DefaultBotProperties(
@@ -82,9 +65,7 @@ def setup_bot() -> Tuple[Dispatcher, Bot]:
     dp["admin_list"] = config.admin_list
     dp["l10n"] = l10n
 
-    dp.message.middleware(AlbumMiddleware())
-    dp.message.outer_middleware(DbMiddleware(pool))
-    dp.callback_query.outer_middleware(DbMiddleware(pool))
+    dp.message.outer_middleware(AlbumMiddleware())
     dp.message.outer_middleware(RoleMiddleware(config.admin_list))
     dp.callback_query.outer_middleware(RoleMiddleware(config.admin_list))
     dp.message.outer_middleware(ThrottlingMiddleware())
@@ -117,8 +98,6 @@ def start_webhook(dp: Dispatcher, bot: Bot):
     app["bot"] = bot
     app["base_url"] = config.webhook.url
 
-    # app.router.add_get("/admin", admin_web_handler)
-    app.router.add_get("/webhook/checkData", test_handler)
     SimpleRequestHandler(
         dispatcher=dp,
         bot=bot,

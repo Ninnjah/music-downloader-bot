@@ -17,18 +17,15 @@ class RoleMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         roles = []
-        repo = data["repo"]
 
         if not getattr(event, "from_user", None):
             data["roles"] = None
 
         else:
             roles.append(UserRole.USER)
-            admin = await repo.get_admin(event.from_user.id)
 
             role_filters = {
-                UserRole.ADMIN: admin is not None,
-                UserRole.SUDO: any((event.from_user.id in self.admin_list, admin and admin.sudo)),
+                UserRole.SUDO: event.from_user.id in self.admin_list,
             }
 
             for role, filter_ in role_filters.items():

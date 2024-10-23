@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from os import path
+from pathlib import Path
 from sys import argv
 from typing import List, Optional, Union
 
@@ -35,9 +36,9 @@ class Webhook:
 class Config:
     bot_token: str
     admin_list: List[int]
-    database_url: str
     redis: Redis
     webhook: Webhook
+    download_path: Path
 
 
 with open(config_path, "r") as f:
