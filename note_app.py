@@ -93,7 +93,10 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
         playlist = Playlist.de_json(raw_data, client)
         await bot.send_message(
             chat_id=data.user_id,
-            text=l10n.format_value("note-playlist", dict(title=playlist.title)),
+            text=l10n.format_value(
+                "note-playlist",
+                dict(title=playlist.title, track_count=playlist.track_count),
+            ),
         )
 
     elif content_type == "track":
