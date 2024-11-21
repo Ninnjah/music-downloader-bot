@@ -1,7 +1,7 @@
 import logging
 from hashlib import md5
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Literal
 
 import uvicorn
 
@@ -63,13 +63,21 @@ async def get_l10n() -> FluentLocalization:
 class Note:
     user_id: int
     task_id: str
-    status: str
+    status: Literal["SUCCESS", "FAIL"]
     info: Optional[Any] = None
 
 
 @post("/note", dependencies={"bot": Provide(get_bot), "client": Provide(get_client)})
 async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Client) -> Response:
     raw_data = data.info
+
+    if data.status == "FAIL":
+        await bot.send_message(
+            chat_id=data.user_id,
+            text=l10n.format_value("note-fail", dict(task_id=data.task_id, info=data.info)),
+        )
+        return Response(status_code=200, content="Success")
+
     content_type = raw_data.pop("type")
 
     if content_type == "album":
@@ -78,7 +86,12 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
             chat_id=data.user_id,
             text=l10n.format_value(
                 "note-album",
-                dict(artist=album.artists_name()[0], title=album.title, track_count=album.track_count)
+                dict(
+                    task_id=data.task_id,
+                    artist=album.artists_name()[0],
+                    title=album.title,
+                    track_count=album.track_count,
+                )
             ),
         )
 
@@ -86,7 +99,7 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
         artist = Artist.de_json(raw_data, client)
         await bot.send_message(
             chat_id=data.user_id,
-            text=l10n.format_value("note-album", dict(name=artist.name)),
+            text=l10n.format_value("note-album", dict(task_id=data.task_id, name=artist.name)),
         )
 
     elif content_type == "playlist":
@@ -95,7 +108,7 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
             chat_id=data.user_id,
             text=l10n.format_value(
                 "note-playlist",
-                dict(title=playlist.title, track_count=playlist.track_count),
+                dict(task_id=data.task_id, title=playlist.title, track_count=playlist.track_count),
             ),
         )
 
@@ -105,7 +118,7 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
             chat_id=data.user_id,
             text=l10n.format_value(
                 "note-track",
-                dict(artist=track.artists_name()[0], title=track.title)
+                dict(task_id=data.task_id, artist=track.artists_name()[0], title=track.title)
             ),
         )
 

@@ -36,6 +36,15 @@ class NotificationTask(Task):
         }
         httpx.post(NotificationTask.NOTE_SERVER, json=payload)
 
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        payload = {
+            "user_id": args[0],
+            "task_id": task_id,
+            "status": "FAIL",
+            "info": repr(exc),
+        }
+        httpx.post(NotificationTask.NOTE_SERVER, json=payload)
+
 
 def retry(attempt_count: int = 3, timeout: float = 1):
     def decorator(f):
@@ -330,3 +339,8 @@ def download_track(user_id: int, track_id: Union[str, int]) -> Optional[dict]:
     retval = track.to_dict()
     retval.update(type="track")
     return retval
+
+
+@app.task(base=NotificationTask)
+def test(user_id: int):
+    raise ValueError("Oh no...")
