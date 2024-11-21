@@ -1,12 +1,12 @@
 [Unit]
-Description=Music Download Bot
+Description=Music Download Notification server
 After=network.target
 
 [Service]
 User=root
 Type=simple
 WorkingDirectory=/opt/tgbot
-ExecStart=/opt/tgbot/venv/bin/python bot.py
+ExecStart=/opt/tgbot/venv/bin/python note_app.py
 Restart=always
 
 [Install]

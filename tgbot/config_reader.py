@@ -33,12 +33,41 @@ class Webhook:
 
 
 @dataclass(frozen=True)
+class Yandex:
+    token: str
+
+
+@dataclass(frozen=True)
+class Music:
+    download_path: Path = Path("music")
+    replace_playlist_path: bool = False
+
+
+@dataclass(frozen=True)
+class Subsonic:
+    username: str
+    password: str
+    salt: str
+
+
+@dataclass(frozen=True)
+class Server:
+    subsonic: Subsonic
+    host: str = "localhost"
+    port: int = 8080
+    testing: bool = False
+
+
+@dataclass(frozen=True)
 class Config:
     bot_token: str
     admin_list: List[int]
     redis: Redis
     webhook: Webhook
     download_path: Path
+    yandex: Yandex
+    music: Music
+    server: Server
 
 
 with open(config_path, "r") as f:

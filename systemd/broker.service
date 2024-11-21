@@ -1,12 +1,12 @@
 [Unit]
-Description=Music Download Bot
+Description=Music Download Broker
 After=network.target
 
 [Service]
 User=root
 Type=simple
 WorkingDirectory=/opt/tgbot
-ExecStart=/opt/tgbot/venv/bin/python bot.py
+ExecStart=/opt/tgbot/venv/bin/celery -A broker_app:app worker --loglevel=info
 Restart=always
 
 [Install]
