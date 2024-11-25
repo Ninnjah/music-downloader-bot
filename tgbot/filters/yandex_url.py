@@ -32,7 +32,7 @@ class YandexUrlFilter(UrlFilter):
             if YandexUrlFilter.URL_PREFIX not in url:
                 continue
 
-            raw_data = url.split(YandexUrlFilter.URL_PREFIX)[-1].split("/")
+            raw_data = url.split(YandexUrlFilter.URL_PREFIX)[-1].split("?")[0].split("/")
 
             if raw_data[0] == "users" and len(raw_data) == 4:
                 yandex_urls["playlist"].append(Playlist(id=raw_data[3], owner=raw_data[1]))
