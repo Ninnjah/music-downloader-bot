@@ -103,7 +103,7 @@ async def task_note_yandex(data: Note, l10n: FluentLocalization, bot: Bot, clien
                 "note-artist",
                 dict(
                     task_id=data.task_id,
-                    name=artist.name,
+                    artist=artist.name,
                 ),
             ),
         )
