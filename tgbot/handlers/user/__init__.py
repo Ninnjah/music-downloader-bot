@@ -3,7 +3,7 @@ from aiogram.enums.chat_type import ChatType
 
 from tgbot.filters import IsAdminFilter
 
-from . import start, audio
+from . import start, audio, yandex, spotify
 
 __all__ = ("router",)
 
@@ -12,6 +12,8 @@ router.message.filter(IsAdminFilter(), F.chat.type.in_({ChatType.PRIVATE}))
 router.callback_query.filter(IsAdminFilter(), F.message.chat.type.in_({ChatType.PRIVATE}))
 
 router.include_routers(
+    yandex.router,
+    spotify.router,
     start.router,
     audio.router,
 )

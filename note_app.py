@@ -67,8 +67,8 @@ class Note:
     info: Optional[Any] = None
 
 
-@post("/note", dependencies={"bot": Provide(get_bot), "client": Provide(get_client)})
-async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Client) -> Response:
+@post("/note_yandex", dependencies={"bot": Provide(get_bot), "client": Provide(get_client)})
+async def task_note_yandex(data: Note, l10n: FluentLocalization, bot: Bot, client: Client) -> Response:
     raw_data = data.info
 
     if data.status == "FAIL":
@@ -99,7 +99,13 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
         artist = Artist.de_json(raw_data, client)
         await bot.send_message(
             chat_id=data.user_id,
-            text=l10n.format_value("note-album", dict(task_id=data.task_id, name=artist.name)),
+            text=l10n.format_value(
+                "note-artist",
+                dict(
+                    task_id=data.task_id,
+                    name=artist.name,
+                ),
+            ),
         )
 
     elif content_type == "playlist":
@@ -108,7 +114,11 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
             chat_id=data.user_id,
             text=l10n.format_value(
                 "note-playlist",
-                dict(task_id=data.task_id, title=playlist.title, track_count=playlist.track_count),
+                dict(
+                    task_id=data.task_id,
+                    title=playlist.title,
+                    track_count=playlist.track_count,
+                ),
             ),
         )
 
@@ -118,7 +128,84 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
             chat_id=data.user_id,
             text=l10n.format_value(
                 "note-track",
-                dict(task_id=data.task_id, artist=track.artists_name()[0], title=track.title)
+                dict(
+                    task_id=data.task_id,
+                    artist=track.artists_name()[0],
+                    title=track.title,
+                ),
+            ),
+        )
+
+    else:
+        return Response(status_code=400, content=f"Unsupported type {content_type}")
+
+    async with AsyncClient() as client:
+        await client.get(SUBSONIC_URL, params=SUBSONIC_DATA)
+    return Response(status_code=200, content="Success")
+
+
+@post("/note_spotify", dependencies={"bot": Provide(get_bot)})
+async def task_note_spotify(data: Note, l10n: FluentLocalization, bot: Bot) -> Response:
+    raw_data = data.info
+
+    if data.status == "FAIL":
+        await bot.send_message(
+            chat_id=data.user_id,
+            text=l10n.format_value("note-fail", dict(task_id=data.task_id, info=data.info)),
+        )
+        return Response(status_code=200, content="Success")
+
+    content_type = raw_data.pop("type")
+
+    if content_type == "album":
+        await bot.send_message(
+            chat_id=data.user_id,
+            text=l10n.format_value(
+                "note-album",
+                dict(
+                    task_id=data.task_id,
+                    artist=raw_data["album_artist"],
+                    title=raw_data["album_name"],
+                    track_count=raw_data["tracks_count"],
+                )
+            ),
+        )
+
+    elif content_type == "artist":
+        await bot.send_message(
+            chat_id=data.user_id,
+            text=l10n.format_value(
+                "note-artist",
+                dict(
+                    task_id=data.task_id,
+                    artist=raw_data["album_artist"],
+                )
+            ),
+        )
+
+    elif content_type == "playlist":
+        await bot.send_message(
+            chat_id=data.user_id,
+            text=l10n.format_value(
+                "note-playlist",
+                dict(
+                    task_id=data.task_id,
+                    title=raw_data["list_name"],
+                    track_count=raw_data["list_length"],
+                ),
+            ),
+        )
+
+    elif content_type == "track":
+        await bot.send_message(
+            chat_id=data.user_id,
+            text=l10n.format_value(
+                "note-track",
+                dict(
+                    task_id=data.task_id,
+                    artist=raw_data["album_artist"],
+                    title=raw_data["name"],
+                )
             ),
         )
 
@@ -131,7 +218,10 @@ async def task_note(data: Note, l10n: FluentLocalization, bot: Bot, client: Clie
 
 
 backend_app = Litestar(
-    route_handlers=[task_note],
+    route_handlers=[
+        task_note_yandex,
+        task_note_spotify
+    ],
     debug=config.testing,
     dependencies={"l10n": get_l10n},
     openapi_config=OpenAPIConfig(

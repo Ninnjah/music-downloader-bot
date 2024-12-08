@@ -12,9 +12,10 @@ dependencies = [
     "fluent.runtime~=0.4",
     "music-tag~=0.4",
     "yandex-music~=2.2",
+    "spotdl~=4.2",
     "celery[redis]~=5.4",
     "litestar~=2.13",
-    "uvicorn~=0.32",
+    "uvicorn~=0.22",
 ]
 
 [project.optional-dependencies]

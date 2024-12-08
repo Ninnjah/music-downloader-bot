@@ -38,8 +38,16 @@ class Yandex:
 
 
 @dataclass(frozen=True)
+class Spotify:
+    id: str
+    secret: str
+    proxy: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class Music:
     download_path: Path = Path("music")
+    playlist_path: Path = Path("music")
     replace_playlist_path: bool = False
 
 
@@ -66,6 +74,7 @@ class Config:
     webhook: Webhook
     download_path: Path
     yandex: Yandex
+    spotify: Spotify
     music: Music
     server: Server
 

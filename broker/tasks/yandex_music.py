@@ -1,12 +1,10 @@
 import os
 import logging
-import time
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
 import music_tag
 import httpx
-from celery import Task
 from mutagen.mp3 import MP3
 
 from yandex_music import Album, Artist, Client, Track, Playlist
@@ -14,6 +12,8 @@ from yandex_music.exceptions import YandexMusicError, NotFoundError
 
 from m3u8 import PlaylistGenerator
 from broker_app import app
+from broker.services.notification import NotificationTask
+from broker.services.retry import retry
 from tgbot.config_reader import config
 
 
@@ -21,44 +21,12 @@ logger = logging.getLogger(__name__)
 client = Client(token=config.yandex.token)
 client.init()
 MUSIC_PATH = config.music.download_path
+PLAYLIST_PATH = config.music.playlist_path
 FORBIDDEN_SYMBOLS = r"#<$+%>!`&*‘|?{}“=>/:\@"
 
 
-class NotificationTask(Task):
-    NOTE_SERVER = f"http://{config.server.host}:{config.server.port}/note"
-
-    def on_success(self, retval, task_id, args, kwargs):
-        payload = {
-            "user_id": args[0],
-            "task_id": task_id,
-            "status": "SUCCESS",
-            "info": retval,
-        }
-        httpx.post(NotificationTask.NOTE_SERVER, json=payload)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        payload = {
-            "user_id": args[0],
-            "task_id": task_id,
-            "status": "FAIL",
-            "info": repr(exc),
-        }
-        httpx.post(NotificationTask.NOTE_SERVER, json=payload)
-
-
-def retry(attempt_count: int = 3, timeout: float = 1):
-    def decorator(f):
-        def wrapper(*args, **kwargs):
-            for attempt in range(attempt_count):
-                try:
-                    return f(*args, **kwargs)
-                except Exception as e:
-                    if attempt + 1 == attempt_count:
-                        logger.warning("retry - %s", e)
-                    else:
-                        time.sleep(timeout)
-        return wrapper
-    return decorator
+class YandexNote(NotificationTask):
+    ENDPOINT = "note_yandex"
 
 
 def _make_album_dir(album: Album) -> Tuple[Path, Path]:
@@ -190,7 +158,7 @@ def get_album_info(album_id: Union[str, int]) -> Optional[dict]:
         return album.to_dict()
 
 
-@app.task(base=NotificationTask)
+@app.task(base=YandexNote)
 def download_album(user_id: int, album_id: Union[str, int]) -> Optional[dict]:
     if not (album := get_album_info(album_id)):
         return
@@ -229,7 +197,7 @@ def get_artist_info(artist_id) -> Optional[dict]:
         return artist.to_dict()
 
 
-@app.task(base=NotificationTask)
+@app.task(base=YandexNote)
 def download_artist(user_id: int, artist_id: Union[str, int]) -> Optional[dict]:
     if not (artist := get_artist_info(artist_id)):
         return
@@ -267,7 +235,7 @@ def get_playlist_info(owner_id: str, playlist_id: int) -> Optional[dict]:
         return playlist.to_dict()
 
 
-@app.task(base=NotificationTask)
+@app.task(base=YandexNote)
 def download_playlist(user_id: int, owner_id: str, playlist_id: int) -> Optional[dict]:
     if not (playlist := get_playlist_info(owner_id, playlist_id)):
         return
@@ -276,7 +244,7 @@ def download_playlist(user_id: int, owner_id: str, playlist_id: int) -> Optional
 
     playlist_entries = []
     old_root = Path(MUSIC_PATH)
-    new_root = Path("/music")
+    new_root = Path(PLAYLIST_PATH)
 
     logger.info(
         "Playlist owner: %s / Playlist ID: %s / Playlist title - %s",
@@ -320,7 +288,7 @@ def get_track_info(track_id) -> Optional[dict]:
         return track.to_dict()
 
 
-@app.task(base=NotificationTask)
+@app.task(base=YandexNote)
 def download_track(user_id: int, track_id: Union[str, int]) -> Optional[dict]:
     if not (track := get_track_info(track_id)):
         return
@@ -339,8 +307,3 @@ def download_track(user_id: int, track_id: Union[str, int]) -> Optional[dict]:
     retval = track.to_dict()
     retval.update(type="track")
     return retval
-
-
-@app.task(base=NotificationTask)
-def test(user_id: int):
-    raise ValueError("Oh no...")

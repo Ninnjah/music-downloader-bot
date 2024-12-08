@@ -1,12 +1,11 @@
-from .yandex_music import (
-    get_album_info, download_album,
-    get_artist_info, download_artist,
-    get_playlist_info, download_playlist,
-    get_track_info, download_track,
-)
+from . import yandex_music
+from . import spotify_music
 
 __all__ = (
-    "get_album_info", "download_album",
-    "get_artist_info", "download_artist",
-    "get_playlist_info", "download_playlist",
+    yandex_music.get_album_info, yandex_music.download_album,
+    yandex_music.get_artist_info, yandex_music.download_artist,
+    yandex_music.get_playlist_info, yandex_music.download_playlist,
+    spotify_music.download_album,
+    spotify_music.download_artist,
+    spotify_music.download_playlist,
 )

@@ -20,9 +20,15 @@ webhook:
 yandex:
  token: <token>
 
+spotify:
+ id: <client_id>
+ secret: <client_secret>
+ proxy:
+
 music:
- download_path: music
- replace_playlist_path: false
+ download_path: ./music
+ playlist_path: /music
+ replace_playlist_path: true
 
 server:
  host: localhost

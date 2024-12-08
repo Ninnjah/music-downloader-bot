@@ -3,7 +3,7 @@ note-album =
     Успешно скачал альбом/сборник: <b>{ $artist } - { $title }</b> количество треков - { $track_count }
 note-artist =
     #t{ $task_id }
-    Успешно скачал треки исполнителя: <b>{ $name }</b>
+    Успешно скачал треки исполнителя: <b>{ $artist }</b>
 note-playlist =
     #t{ $task_id }
     Успешно скачал плейлист: <b>{ $title }</b> количество треков - { $track_count }
