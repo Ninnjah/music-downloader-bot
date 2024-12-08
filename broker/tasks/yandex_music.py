@@ -213,7 +213,7 @@ def download_artist(user_id: int, artist_id: Union[str, int]) -> Optional[dict]:
 
     direct_albums = client.artists_direct_albums(artist_id=artist_id, page_size=1000)
     for album in direct_albums:
-        download_album(album["id"])
+        download_album(user_id, album["id"])
 
     retval = artist.to_dict()
     retval.update(type="artist")
