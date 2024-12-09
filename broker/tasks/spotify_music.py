@@ -35,8 +35,8 @@ class SpotifyNote(NotificationTask):
     ENDPOINT = "note_spotify"
 
 
-def _download_album_cover(song: Song):
-    album_folder = Path(MUSIC_PATH, song.artist, f"{song.album_name} ({song.year})")
+def _download_album_cover(song: Song, song_path: Path):
+    album_folder = song_path.parent
     album_cover_pic = Path(album_folder, "cover.jpg")
     if album_folder and not album_cover_pic.exists():
         with album_cover_pic.open("wb") as f:
@@ -71,8 +71,8 @@ def download_album(user_id: int, album: List[dict]) -> Optional[dict]:
         album[0].album_name,
     )
 
-    client.download_songs(album)
-    _download_album_cover(album[0])
+    track_list = client.download_songs(album)
+    _download_album_cover(*track_list[0])
 
     retval = asdict(album[0])
     retval.update(type="album")
@@ -96,7 +96,7 @@ def download_artist(user_id: int, artist: List[dict]) -> Optional[dict]:
 
     for track, track_path in track_list:
         if track.album_id not in parsed_albums:
-            _download_album_cover(track)
+            _download_album_cover(track, track_path)
         parsed_albums.append(track.album_id)
 
     retval = asdict(artist[0])
@@ -121,7 +121,7 @@ def download_playlist(user_id: int, playlist: List[dict]) -> Optional[dict]:
     track_list = client.download_songs(playlist)
     for track, track_path in track_list:
         if track.album_id not in parsed_albums:
-            _download_album_cover(track)
+            _download_album_cover(track, track_path)
         parsed_albums.append(track.album_id)
 
         if config.music.replace_playlist_path:
@@ -155,8 +155,8 @@ def download_track(user_id: int, song: dict) -> Optional[dict]:
         song.album_name,
     )
 
-    client.download(song)
-    _download_album_cover(song)
+    track, track_path = client.download(song)
+    _download_album_cover(track, track_path)
 
     retval = asdict(song)
     retval.update(type="track")
