@@ -1,7 +1,5 @@
 # Music Downloader
 
----
-
 Telegram bot that downloads music  to your server/pc and automaticaly update navidrome library after downloading
 
 Just send link to track/album/playlist/artist to bot and wait!
@@ -17,8 +15,6 @@ Just send link to track/album/playlist/artist to bot and wait!
   - [Spotify](https://open.spotify.com/) via [spotDL](https://github.com/spotDL/spotify-downloader)
 
 ## Installation guide
-
----
 
 Install redis
 ```shell
@@ -83,8 +79,6 @@ docker-compose up -d
 
 ## Contributing
 
----
-
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. 
 Any contributions you make are greatly appreciated.
 
@@ -98,7 +92,5 @@ You can also simply open an issue with the tag "enhancement". Don't forget to gi
     Open a Pull Request
 
 ## License
-
----
 
 The project is under the GPL-3.0 licence
