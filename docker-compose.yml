@@ -1,6 +1,14 @@
-version: "3"
-
 services:
+  _image:
+    image: music-downloader
+    command: ["echo", "build completed"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+  redis:
+    image: "redis:alpine"
+
   bot:
     build:
       context: .
@@ -9,6 +17,9 @@ services:
       - type: bind
         source: ./config.yaml
         target: /app/config.yaml
+    depends_on:
+      - redis
+      - _image
     environment:
       - PYTHONUNBUFFERED=1
     command: python bot.py
@@ -21,7 +32,11 @@ services:
       - type: bind
         source: ./config.yaml
         target: /app/config.yaml
+      - "/home/ninnjah/Documents/music-downloader-bot/music/:/app/music"
+    depends_on:
+      - redis
+      - _image
     environment:
       - PYTHONUNBUFFERED=1
     command: taskiq worker worker_app:broker worker.tasks --log-level INFO --workers=2
-    restart: on-failure
+    restart: always
