@@ -6,6 +6,7 @@ dependencies = [
     "aiogram-dialog~=2.2",
     "aiogram~=3.13",
     "adaptix~=3.0.0b8",
+    "httpx~=0.28",
     "PyYAML~=6.0",
     "redis~=5.0",
     "cachetools~=5.3",
@@ -13,14 +14,12 @@ dependencies = [
     "music-tag~=0.4",
     "yandex-music~=2.2",
     "spotdl~=4.2",
-    "celery[redis]~=5.4",
-    "litestar~=2.13",
-    "uvicorn~=0.22",
+    "taskiq-redis~=1.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.4",
+    "ruff>=0.8,<1.0",
 ]
 
 [tool.setuptools]

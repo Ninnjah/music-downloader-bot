@@ -11,10 +11,10 @@ from yandex_music import Album, Artist, Client, Track, Playlist
 from yandex_music.exceptions import YandexMusicError, NotFoundError
 
 from m3u8 import PlaylistGenerator
-from broker_app import app
-from broker.services.notification import NotificationTask
-from broker.services.retry import retry
+from worker_app import broker
 from tgbot.config_reader import config
+
+from ..middleware.notification import YandexNoteMiddleware
 
 
 logger = logging.getLogger(__name__)
@@ -25,11 +25,9 @@ PLAYLIST_PATH = config.music.playlist_path
 FORBIDDEN_SYMBOLS = r"#<$+%>!`&*‘|?{}“=>/:\@"
 
 
-class YandexNote(NotificationTask):
-    ENDPOINT = "note_yandex"
-
-
 def _make_album_dir(album: Album) -> Tuple[Path, Path]:
+    """Create artist and album directory, download artist and album images."""
+
     if album.artists[0].various:
         album_folder = Path(
             MUSIC_PATH, "Various artist", f"{album.title} ({album.year})"
@@ -61,8 +59,8 @@ def _make_album_dir(album: Album) -> Tuple[Path, Path]:
     return album_folder, album_cover_pic
 
 
-@retry(attempt_count=5)
 def _download_track(track: Track) -> Path:
+    """Download track with metadata."""
     album = track.albums[0]
     album_folder, album_cover_pic = _make_album_dir(album)
 
@@ -147,23 +145,21 @@ def _download_track(track: Track) -> Path:
     return track_file
 
 
-@app.task()
-def get_album_info(album_id: Union[str, int]) -> Optional[dict]:
+@broker.task()
+def get_album_info(album_id: Union[str, int], **kwargs) -> Optional[Album]:
     try:
         album = client.albums_with_tracks(album_id)
     except YandexMusicError as e:
         logger.warning("No results found for album_id=%s - %s", album_id, e, exc_info=True)
         return
     else:
-        return album.to_dict()
+        return album
 
 
-@app.task(base=YandexNote)
-def download_album(user_id: int, album_id: Union[str, int]) -> Optional[dict]:
+@broker.task(note=YandexNoteMiddleware.LABEL)
+def download_album(user_id: int, album_id: Union[str, int], **kwargs) -> Optional[Album]:
     if not (album := get_album_info(album_id)):
         return
-    else:
-        album = Album.de_json(album, client)
 
     logger.info(
         "Album ID: %s / Album title - %s",
@@ -181,28 +177,24 @@ def download_album(user_id: int, album_id: Union[str, int]) -> Optional[dict]:
         for track in disk:
             _download_track(track)
 
-    retval = album.to_dict()
-    retval.update(type="album")
-    return retval
+    return album
 
 
-@app.task()
-def get_artist_info(artist_id) -> Optional[dict]:
+@broker.task()
+def get_artist_info(artist_id, **kwargs) -> Optional[Artist]:
     try:
         artist = client.artists(artist_id)[0]
     except YandexMusicError as e:
         logger.warning("No results found for artist_id=%s - %s", artist_id, e, exc_info=True)
         return
     else:
-        return artist.to_dict()
+        return artist
 
 
-@app.task(base=YandexNote)
-def download_artist(user_id: int, artist_id: Union[str, int]) -> Optional[dict]:
+@broker.task(note=YandexNoteMiddleware.LABEL)
+def download_artist(user_id: int, artist_id: Union[str, int], **kwargs) -> Optional[Artist]:
     if not (artist := get_artist_info(artist_id)):
         return
-    else:
-        artist = Artist.de_json(artist, client)
 
     logger.info(
         "Start download: Artist ID: %s / Artist name: %s / Direct albums: %s",
@@ -215,13 +207,11 @@ def download_artist(user_id: int, artist_id: Union[str, int]) -> Optional[dict]:
     for album in direct_albums:
         download_album(user_id, album["id"])
 
-    retval = artist.to_dict()
-    retval.update(type="artist")
-    return retval
+    return artist
 
 
-@app.task()
-def get_playlist_info(owner_id: str, playlist_id: int) -> Optional[dict]:
+@broker.task()
+def get_playlist_info(owner_id: str, playlist_id: int, **kwargs) -> Optional[Playlist]:
     try:
         playlist = client.users_playlists(playlist_id, owner_id)
     except YandexMusicError as e:
@@ -232,15 +222,13 @@ def get_playlist_info(owner_id: str, playlist_id: int) -> Optional[dict]:
     else:
         if isinstance(playlist, list):
             playlist = playlist[0]
-        return playlist.to_dict()
+        return playlist
 
 
-@app.task(base=YandexNote)
-def download_playlist(user_id: int, owner_id: str, playlist_id: int) -> Optional[dict]:
+@broker.task(note=YandexNoteMiddleware.LABEL)
+def download_playlist(user_id: int, owner_id: str, playlist_id: int, **kwargs) -> Optional[Playlist]:
     if not (playlist := get_playlist_info(owner_id, playlist_id)):
         return
-    else:
-        playlist = Playlist.de_json(playlist, client)
 
     playlist_entries = []
     old_root = Path(MUSIC_PATH)
@@ -272,28 +260,24 @@ def download_playlist(user_id: int, owner_id: str, playlist_id: int) -> Optional
     with playlist_path.open("w") as f:
         f.write(PlaylistGenerator(playlist_entries, playlist_name=playlist.title).generate())
 
-    retval = playlist.to_dict()
-    retval.update(type="playlist")
-    return retval
+    return playlist
 
 
-@app.task()
-def get_track_info(track_id) -> Optional[dict]:
+@broker.task()
+def get_track_info(track_id, **kwargs) -> Optional[Track]:
     try:
         track = client.tracks(track_id)[0]
     except YandexMusicError as e:
         logger.warning("No results found for track_id=%s - %s", track_id, e, exc_info=True)
         return
     else:
-        return track.to_dict()
+        return track
 
 
-@app.task(base=YandexNote)
-def download_track(user_id: int, track_id: Union[str, int]) -> Optional[dict]:
+@broker.task(note=YandexNoteMiddleware.LABEL)
+def download_track(user_id: int, track_id: Union[str, int], **kwargs) -> Optional[Track]:
     if not (track := get_track_info(track_id)):
         return
-    else:
-        track = Track.de_json(track, client)
 
     logger.info(
         "Start download: Track ID: %s / Artist name: %s / From Album: %s",
@@ -304,6 +288,4 @@ def download_track(user_id: int, track_id: Union[str, int]) -> Optional[dict]:
 
     _download_track(track)
 
-    retval = track.to_dict()
-    retval.update(type="track")
-    return retval
+    return track

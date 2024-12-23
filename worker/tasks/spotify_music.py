@@ -1,7 +1,9 @@
+import asyncio
+
 import logging
 from dataclasses import asdict
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import httpx
 from spotdl import Spotdl
@@ -10,14 +12,16 @@ from spotdl.types.song import Song
 from spotipy.exceptions import SpotifyException
 
 from m3u8 import PlaylistGenerator
-from broker_app import app
-from broker.services.notification import NotificationTask
+from worker_app import broker
 from tgbot.config_reader import config
+
+from ..middleware.notification import SpotifyNoteMiddleware
 
 
 logger = logging.getLogger(__name__)
 MUSIC_PATH = config.music.download_path
 PLAYLIST_PATH = config.music.playlist_path
+NOTE_ENDPOINT = "note_spotify"
 client = Spotdl(
     client_id=config.spotify.id,
     client_secret=config.spotify.secret,
@@ -31,11 +35,15 @@ client = Spotdl(
 )
 
 
-class SpotifyNote(NotificationTask):
-    ENDPOINT = "note_spotify"
+def _download_album_cover(song: Song, song_path: Path) -> None:
+    """
+    Download album cover to album directory if directory exists.
 
+    ### Arguments
+    - song: The song with album cover url.
+    - song_path: The path to the song
+    """
 
-def _download_album_cover(song: Song, song_path: Path):
     album_folder = song_path.parent
     album_cover_pic = Path(album_folder, "cover.jpg")
     if album_folder and not album_cover_pic.exists():
@@ -44,8 +52,13 @@ def _download_album_cover(song: Song, song_path: Path):
             f.write(res.content)
 
 
-@app.task()
-def get_info(url: str) -> Optional[List[dict]]:
+async def _pool_download(song: Song) -> Tuple[Song, Optional[Path]]:
+    """Run asynchronous task in a pool to make sure that all processes."""
+    return client.downloader.search_and_download(song)
+
+
+@broker.task()
+def get_info(url: str, **kwargs) -> Optional[List[dict]]:
     try:
         track = client.search([url])
     except SpotifyException as e:
@@ -61,8 +74,8 @@ def get_info(url: str) -> Optional[List[dict]]:
         ]
 
 
-@app.task(base=SpotifyNote)
-def download_album(user_id: int, album: List[dict]) -> Optional[dict]:
+@broker.task(note=SpotifyNoteMiddleware.LABEL)
+async def download_album(user_id: int, album: List[dict], **kwargs) -> Optional[dict]:
     album = [Song(**song) for song in album]
 
     logger.info(
@@ -71,7 +84,8 @@ def download_album(user_id: int, album: List[dict]) -> Optional[dict]:
         album[0].album_name,
     )
 
-    track_list = client.download_songs(album)
+    tasks = [_pool_download(song) for song in album]
+    track_list = await asyncio.gather(*tasks)
     _download_album_cover(*track_list[0])
 
     retval = asdict(album[0])
@@ -79,8 +93,8 @@ def download_album(user_id: int, album: List[dict]) -> Optional[dict]:
     return retval
 
 
-@app.task(base=SpotifyNote)
-def download_artist(user_id: int, artist: List[dict]) -> Optional[dict]:
+@broker.task(note=SpotifyNoteMiddleware.LABEL)
+async def download_artist(user_id: int, artist: List[dict], **kwargs) -> Optional[dict]:
     artist = [Song(**song) for song in artist]
     album_count = len(set(song.album_id for song in artist))
 
@@ -91,7 +105,8 @@ def download_artist(user_id: int, artist: List[dict]) -> Optional[dict]:
         album_count,
     )
 
-    track_list = client.download_songs(artist)
+    tasks = [_pool_download(song) for song in artist]
+    track_list = await asyncio.gather(*tasks)
     parsed_albums = []
 
     for track, track_path in track_list:
@@ -104,8 +119,8 @@ def download_artist(user_id: int, artist: List[dict]) -> Optional[dict]:
     return retval
 
 
-@app.task(base=SpotifyNote)
-def download_playlist(user_id: int, playlist: List[dict]) -> Optional[dict]:
+@broker.task(note=SpotifyNoteMiddleware.LABEL)
+async def download_playlist(user_id: int, playlist: List[dict], **kwargs) -> Optional[dict]:
     playlist = [Song(**song) for song in playlist]
     playlist_entries = []
     old_root = Path(MUSIC_PATH)
@@ -118,7 +133,9 @@ def download_playlist(user_id: int, playlist: List[dict]) -> Optional[dict]:
     )
 
     parsed_albums = []
-    track_list = client.download_songs(playlist)
+    tasks = [_pool_download(song) for song in playlist]
+    track_list = await asyncio.gather(*tasks)
+
     for track, track_path in track_list:
         if track.album_id not in parsed_albums:
             _download_album_cover(track, track_path)
@@ -144,8 +161,8 @@ def download_playlist(user_id: int, playlist: List[dict]) -> Optional[dict]:
     return retval
 
 
-@app.task(base=SpotifyNote)
-def download_track(user_id: int, song: dict) -> Optional[dict]:
+@broker.task(note=SpotifyNoteMiddleware.LABEL)
+async def download_track(user_id: int, song: dict, **kwargs) -> Optional[dict]:
     song = Song(**song)
 
     logger.info(
@@ -155,7 +172,7 @@ def download_track(user_id: int, song: dict) -> Optional[dict]:
         song.album_name,
     )
 
-    track, track_path = client.download(song)
+    track, track_path = client.downloader.search_and_download(song)
     _download_album_cover(track, track_path)
 
     retval = asdict(song)

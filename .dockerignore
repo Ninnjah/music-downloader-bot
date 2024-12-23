@@ -30,4 +30,4 @@ MANIFEST
 test/
 systemd/
 build/
-telegram_template.egg-info
+telegram_template.egg-info/

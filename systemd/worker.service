@@ -6,7 +6,7 @@ After=network.target
 User=root
 Type=simple
 WorkingDirectory=/opt/tgbot
-ExecStart=/opt/tgbot/venv/bin/celery -A broker_app:app worker --loglevel=info
+ExecStart=/opt/tgbot/venv/bin/taskiq worker worker_app:broker worker.tasks --log-level INFO --workers=2
 Restart=always
 
 [Install]
