@@ -69,7 +69,7 @@ async def yandex_url(m: Message, l10n: FluentLocalization, urls: UrlList):
                 ),
             )
         )
-        download_playlist.kiq(
+        await download_playlist.kiq(
             user_id=m.from_user.id,
             owner_id=playlist.owner,
             playlist_id=playlist.id,
@@ -89,7 +89,7 @@ async def yandex_url(m: Message, l10n: FluentLocalization, urls: UrlList):
                 ),
             )
         )
-        download_track.kiq(
+        await download_track.kiq(
             user_id=m.from_user.id,
             track_id=track.id,
             reply_to_msg=msg.message_id,
