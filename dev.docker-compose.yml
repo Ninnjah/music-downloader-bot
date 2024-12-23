@@ -1,11 +1,4 @@
 services:
-  _image:
-    image: music-downloader
-    command: ["echo", "build completed"]
-    build:
-      context: .
-      dockerfile: Dockerfile
-
   redis:
     image: "redis:alpine"
 
