@@ -7,12 +7,11 @@ services:
     image: "redis:alpine"
 
   bot:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    extends:
+      service: _image
     volumes:
       - type: bind
-        source: ./music-downloader/config.yaml
+        source: /usr/share/music-downloader/config.yaml
         target: /app/config.yaml
     depends_on:
       - redis
@@ -24,13 +23,13 @@ services:
 
   worker:
     extends:
-      service: bot
+      service: _image
     volumes:
       - type: bind
-        source: ./music-downloader/config.yaml
+        source: /usr/share/music-downloader/config.yaml
         target: /app/config.yaml
-      - type: volume
-        source: ./music-downloader/music
+      - type: bind
+        source: /usr/share/music-downloader/music
         target: /app/music
     depends_on:
       - redis
