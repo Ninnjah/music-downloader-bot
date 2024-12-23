@@ -20,8 +20,7 @@ from ..middleware.notification import YandexNoteMiddleware
 logger = logging.getLogger(__name__)
 client = Client(token=config.yandex.token)
 client.init()
-MUSIC_PATH = config.music.download_path
-PLAYLIST_PATH = config.music.playlist_path
+MUSIC_PATH = config.music_path
 FORBIDDEN_SYMBOLS = r"#<$+%>!`&*‘|?{}“=>/:\@"
 
 
@@ -231,8 +230,6 @@ def download_playlist(user_id: int, owner_id: str, playlist_id: int, **kwargs) -
         return
 
     playlist_entries = []
-    old_root = Path(MUSIC_PATH)
-    new_root = Path(PLAYLIST_PATH)
 
     logger.info(
         "Playlist owner: %s / Playlist ID: %s / Playlist title - %s",
@@ -245,8 +242,6 @@ def download_playlist(user_id: int, owner_id: str, playlist_id: int, **kwargs) -
         track_path = _download_track(track_info.track)
         if track_path:
             audio = MP3(track_path)
-            if config.music.replace_playlist_path:
-                track_path = new_root / track_path.relative_to(old_root)
 
             playlist_entries.append(
                 {

@@ -36,7 +36,7 @@ def setup_logger(level: int = logging.INFO):
 
 
 def setup_bot() -> Tuple[Dispatcher, Bot]:
-    config.download_path.mkdir(parents=True, exist_ok=True)
+    config.music_path.mkdir(parents=True, exist_ok=True)
 
     if config.redis.enabled:
         storage = RedisStorage(

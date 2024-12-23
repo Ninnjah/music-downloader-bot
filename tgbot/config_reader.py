@@ -45,13 +45,6 @@ class Spotify:
 
 
 @dataclass(frozen=True)
-class Music:
-    download_path: Path = Path("music")
-    playlist_path: Path = Path("music")
-    replace_playlist_path: bool = False
-
-
-@dataclass(frozen=True)
 class Subsonic:
     username: str
     password: str
@@ -64,10 +57,9 @@ class Config:
     admin_list: List[int]
     redis: Redis
     webhook: Webhook
-    download_path: Path
     yandex: Yandex
     spotify: Spotify
-    music: Music
+    music_path: Path
     subsonic: Subsonic
 
 

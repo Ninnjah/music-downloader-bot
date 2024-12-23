@@ -19,8 +19,7 @@ from ..middleware.notification import SpotifyNoteMiddleware
 
 
 logger = logging.getLogger(__name__)
-MUSIC_PATH = config.music.download_path
-PLAYLIST_PATH = config.music.playlist_path
+MUSIC_PATH = config.music_path
 NOTE_ENDPOINT = "note_spotify"
 client = Spotdl(
     client_id=config.spotify.id,
@@ -123,8 +122,6 @@ async def download_artist(user_id: int, artist: List[dict], **kwargs) -> Optiona
 async def download_playlist(user_id: int, playlist: List[dict], **kwargs) -> Optional[dict]:
     playlist = [Song(**song) for song in playlist]
     playlist_entries = []
-    old_root = Path(MUSIC_PATH)
-    new_root = Path(PLAYLIST_PATH)
 
     logger.info(
         "Playlist URL: %s / Playlist title - %s",
@@ -140,9 +137,6 @@ async def download_playlist(user_id: int, playlist: List[dict], **kwargs) -> Opt
         if track.album_id not in parsed_albums:
             _download_album_cover(track, track_path)
         parsed_albums.append(track.album_id)
-
-        if config.music.replace_playlist_path:
-            track_path = new_root / track_path.relative_to(old_root)
 
         playlist_entries.append(
             {

@@ -1,12 +1,13 @@
 admin_list:
- - <admin_tg_id>
-bot_token: <token>
-database_url: postgresql+asyncpg://user:password@localhost/database
+ - 1234567890
+bot_token: <bot_token>
+# Path for music downloading (pass if use docker)
+music_path: ./music
 
 redis:
  enabled: true
- prefix: tgbot
- host: localhost
+ prefix: musicbot
+ host: redis
  port: 6379
  db: 0
  password:
@@ -18,24 +19,13 @@ webhook:
  port: 8881
 
 yandex:
- token: <token>
+ token: <yandex_token>
 
 spotify:
- id: <client_id>
- secret: <client_secret>
- proxy:
-
-music:
- download_path: ./music
- playlist_path: /music
- replace_playlist_path: true
-
-server:
- host: localhost
- port: 8080
- reload: false
+ id: <spotify_app_id>
+ secret: <spotify_app_secret>
 
 subsonic:
- username: <username>
- password: <password>
- salt: <salt>
+ username: <subsonic_login>
+ password: <subsonic_password>
+ salt: salty_
