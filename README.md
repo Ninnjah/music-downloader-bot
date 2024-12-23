@@ -16,10 +16,6 @@ Just send link to track/album/playlist/artist to bot and wait!
 
 ## Installation guide
 
-Install redis
-```shell
-apt install -y redis
-```
 ### Docker
 1. Clone repo
 ```shell
