@@ -28,3 +28,6 @@ py-modules = []
 [tool.ruff]
 line-length = 110
 lint.extend-select = ["I"]
+
+[tool.uv.sources]
+yandex-music = { git = "https://github.com/MarshalX/yandex-music-api", branch = "main" }
