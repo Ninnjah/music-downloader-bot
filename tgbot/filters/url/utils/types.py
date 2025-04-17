@@ -1,7 +1,6 @@
-from dataclasses import dataclass
 from collections import namedtuple
+from dataclasses import dataclass
 from typing import Sequence
-
 
 Playlist = namedtuple("Playlist", "url id owner")
 Album = namedtuple("Album", "url id")

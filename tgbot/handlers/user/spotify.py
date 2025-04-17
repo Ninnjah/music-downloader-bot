@@ -1,18 +1,18 @@
-import logging
 import html
+import logging
 
 from aiogram import Router
 from aiogram.types import Message
-
 from fluent.runtime import FluentLocalization
 
+from tgbot.filters.url import SpotifyUrlFilter, UrlList
 from worker.tasks.spotify_music import (
     download_album,
     download_artist,
     download_playlist,
-    get_info, download_track,
+    download_track,
+    get_info,
 )
-from tgbot.filters.url import SpotifyUrlFilter, UrlList
 
 logger = logging.getLogger(__name__)
 router = Router(name=__name__)

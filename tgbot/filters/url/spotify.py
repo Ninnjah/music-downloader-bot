@@ -1,10 +1,10 @@
 from collections import defaultdict
-from typing import Dict, Union, Literal
+from typing import Dict, Literal, Union
 
 from aiogram.types import Message
 
 from .utils.abc import UrlFilterProtocol
-from .utils.types import Album, Artist, Track, Playlist, UrlList
+from .utils.types import Album, Artist, Playlist, Track, UrlList
 
 "https://open.spotify.com/artist/2n2RSaZqBuUUukhbLlpnE6"
 "https://open.spotify.com/track/0S38Oso3I9vpDXcTb7kYt9"

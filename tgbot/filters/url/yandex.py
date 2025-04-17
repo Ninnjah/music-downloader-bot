@@ -1,10 +1,10 @@
 from collections import defaultdict
-from typing import Dict, Union, Literal
+from typing import Dict, Literal, Union
 
 from aiogram.types import Message
 
 from .utils.abc import UrlFilterProtocol
-from .utils.types import Album, Artist, Track, Playlist, UrlList
+from .utils.types import Album, Artist, Playlist, Track, UrlList
 
 
 class YandexUrlFilter(UrlFilterProtocol):
@@ -29,7 +29,7 @@ class YandexUrlFilter(UrlFilterProtocol):
                 parsed_urls["track"].append(Track(url=url, id=raw_data[3]))
             elif raw_data[0] == "artist" and 2 <= len(raw_data) < 4:
                 parsed_urls["artist"].append(Artist(url=url, id=raw_data[1]))
-
+        
         if len(parsed_urls) > 0:
             return {
                 "urls": UrlList(

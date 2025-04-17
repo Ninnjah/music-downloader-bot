@@ -1,18 +1,21 @@
-import logging
 import html
+import logging
 
 from aiogram import Router
 from aiogram.types import Message
-
 from fluent.runtime import FluentLocalization
 
+from tgbot.filters.url import UrlList, YandexUrlFilter
 from worker.tasks.yandex_music import (
-    get_album_info, download_album,
-    get_artist_info, download_artist,
-    get_playlist_info, download_playlist,
-    get_track_info, download_track,
+    download_album,
+    download_artist,
+    download_playlist,
+    download_track,
+    get_album_info,
+    get_artist_info,
+    get_playlist_info,
+    get_track_info,
 )
-from tgbot.filters.url import YandexUrlFilter, UrlList
 
 logger = logging.getLogger(__name__)
 router = Router(name=__name__)

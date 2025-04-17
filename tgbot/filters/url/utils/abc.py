@@ -1,8 +1,8 @@
-from typing import Dict, Union, Iterable, Literal
+from typing import Dict, Iterable, Literal, Union
 
 from aiogram.enums import MessageEntityType
-from aiogram.types import Message
 from aiogram.filters import Filter
+from aiogram.types import Message
 
 from .types import UrlList
 

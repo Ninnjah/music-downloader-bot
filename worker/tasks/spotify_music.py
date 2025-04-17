@@ -1,9 +1,8 @@
 import asyncio
-
 import logging
 from dataclasses import asdict
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 import httpx
 from spotdl import Spotdl
@@ -12,11 +11,10 @@ from spotdl.types.song import Song
 from spotipy.exceptions import SpotifyException
 
 from m3u8 import PlaylistGenerator
-from worker_app import broker
 from tgbot.config_reader import config
+from worker_app import broker
 
 from ..middleware.notification import SpotifyNoteMiddleware
-
 
 logger = logging.getLogger(__name__)
 MUSIC_PATH = config.music_path

@@ -3,7 +3,7 @@ from aiogram.enums.chat_type import ChatType
 
 from tgbot.filters import IsAdminFilter
 
-from . import yandex, spotify
+from . import spotify, yandex
 
 __all__ = ("router",)
 

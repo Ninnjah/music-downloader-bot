@@ -1,21 +1,19 @@
-import os
 import logging
+import os
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
-import music_tag
 import httpx
+import music_tag
 from mutagen.mp3 import MP3
-
-from yandex_music import Album, Artist, Client, Track, Playlist
-from yandex_music.exceptions import YandexMusicError, NotFoundError
+from yandex_music import Album, Artist, Client, Playlist, Track
+from yandex_music.exceptions import NotFoundError, YandexMusicError
 
 from m3u8 import PlaylistGenerator
-from worker_app import broker
 from tgbot.config_reader import config
+from worker_app import broker
 
 from ..middleware.notification import YandexNoteMiddleware
-
 
 logger = logging.getLogger(__name__)
 client = Client(token=config.yandex.token)

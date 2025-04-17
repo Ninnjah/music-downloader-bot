@@ -3,7 +3,6 @@ from typing import Any, Dict, Union
 from aiogram.enums import MessageEntityType
 from aiogram.filters import Filter
 from aiogram.types import Message
-
 from fluent.runtime import FluentLocalization
 
 
