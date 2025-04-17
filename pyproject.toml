@@ -1,20 +1,20 @@
 [project]
-version = "1.0.0"
+version = "1.1.0"
 name = "telegram-template"
 requires-python = ">=3.9"
 dependencies = [
     "aiogram-dialog~=2.2",
     "aiogram~=3.13",
-    "adaptix~=3.0.0b8",
-    "httpx~=0.28",
-    "PyYAML~=6.0",
-    "redis~=5.0",
-    "cachetools~=5.3",
-    "fluent.runtime~=0.4",
-    "music-tag~=0.4",
-    "yandex-music~=2.2",
-    "spotdl~=4.2",
-    "taskiq-redis~=1.0",
+    "adaptix>=3.0.0b8",
+    "httpx>=0.28",
+    "PyYAML>=6.0",
+    "redis>=5.0",
+    "cachetools>=5.3",
+    "fluent.runtime>=0.4",
+    "music-tag>=0.4",
+    "yandex-music>=2.2",
+    "spotdl>=4.2",
+    "taskiq-redis>=1.0",
 ]
 
 [project.optional-dependencies]
