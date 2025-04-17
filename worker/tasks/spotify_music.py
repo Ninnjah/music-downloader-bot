@@ -27,7 +27,9 @@ client = Spotdl(
         proxy=config.spotify.proxy,
         output=f"{MUSIC_PATH}/{{artist}}/{{album}} ({{year}})/{{track-number}}. {{title}}",
         format="mp3",
+        bitrate="192k",
         log_level=logging.getLevelName(logging.WARNING),
+        generate_lrc=True,
     ),
 )
 
