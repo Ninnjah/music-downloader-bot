@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import httpx
+import music_tag
 from spotdl import Spotdl
 from spotdl.types.options import DownloaderOptionalOptions
 from spotdl.types.song import Song
@@ -51,9 +52,16 @@ def _download_album_cover(song: Song, song_path: Path) -> None:
             f.write(res.content)
 
 
-async def _pool_download(song: Song) -> Tuple[Song, Optional[Path]]:
-    """Run asynchronous task in a pool to make sure that all processes."""
-    return client.downloader.search_and_download(song)
+async def _download_track(song: Song) -> Tuple[Song, Optional[Path]]:
+    track, track_path = client.downloader.search_and_download(song)
+    lrc_path = track_path.with_suffix(".lrc")
+    if lrc_path.exists():
+        with lrc_path.open() as f:
+            mp3 = music_tag.load_file(track_path)
+            mp3["lyrics"] = f.read()
+            mp3.save()
+
+    return track, track_path
 
 
 @broker.task()
@@ -83,7 +91,7 @@ async def download_album(user_id: int, album: List[dict], **kwargs) -> Optional[
         album[0].album_name,
     )
 
-    tasks = [_pool_download(song) for song in album]
+    tasks = [_download_track(song) for song in album]
     track_list = await asyncio.gather(*tasks)
     _download_album_cover(*track_list[0])
 
@@ -104,7 +112,7 @@ async def download_artist(user_id: int, artist: List[dict], **kwargs) -> Optiona
         album_count,
     )
 
-    tasks = [_pool_download(song) for song in artist]
+    tasks = [_download_track(song) for song in artist]
     track_list = await asyncio.gather(*tasks)
     parsed_albums = []
 
@@ -130,7 +138,7 @@ async def download_playlist(user_id: int, playlist: List[dict], **kwargs) -> Opt
     )
 
     parsed_albums = []
-    tasks = [_pool_download(song) for song in playlist]
+    tasks = [_download_track(song) for song in playlist]
     track_list = await asyncio.gather(*tasks)
 
     for track, track_path in track_list:
@@ -166,7 +174,7 @@ async def download_track(user_id: int, song: dict, **kwargs) -> Optional[dict]:
         song.album_name,
     )
 
-    track, track_path = client.downloader.search_and_download(song)
+    track, track_path = await _download_track(song)
     _download_album_cover(track, track_path)
 
     retval = asdict(song)

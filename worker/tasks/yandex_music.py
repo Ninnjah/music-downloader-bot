@@ -102,7 +102,7 @@ def _download_track(track: Track) -> Path:
     client.request.download(url=track_info["direct_link"], filename=track_file)
     logger.info("Track downloaded. Start write tag's.")
 
-    # начинаем закачивать тэги в трек
+    # Add metadata to track
     mp3 = music_tag.load_file(track_file)
     mp3["tracktitle"] = info["title"]
     if album["version"] is not None:
@@ -123,14 +123,14 @@ def _download_track(track: Track) -> Path:
     mp3["album_artist"] = info["album_artist"]
     try:
         lyrics = client.tracks_lyrics(
-            track_id=track.track_id, format="TEXT"
+            track_id=track.track_id, format="LRC"
         ).fetch_lyrics()
     except NotFoundError:
         pass
     except Exception as e:
         logger.error(e, exc_info=True)
     else:
-        with open(track_file.with_suffix(".txt"), "w") as text_song:
+        with open(track_file.with_suffix(".lrc"), "w") as text_song:
             text_song.write(lyrics)
         mp3["lyrics"] = lyrics
 
