@@ -114,7 +114,7 @@ def _download_track(track: Track) -> Path:
     mp3["tracknumber"] = info["track_position"]
     mp3["totaltracks"] = info["total_track"]
     mp3["genre"] = info["genre"]
-    mp3["Year"] = info["album_year"]
+    mp3["year"] = info["album_year"]
     if track.version is not None:
         mp3["comment"] = f"{track.version} / Release date {info['album_year']}"
     else:
