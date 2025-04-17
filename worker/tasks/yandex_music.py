@@ -92,7 +92,7 @@ def _download_track(track: Track) -> Path:
 
     track_file = (
         album_folder /
-        f"{info['track_position']} - "
+        f"{info['track_position']:02d}. "
         f"{''.join([_ for _ in info['title'][:80] if _ not in FORBIDDEN_SYMBOLS])}.mp3"
     )
     if os.path.exists(track_file):
