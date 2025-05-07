@@ -808,15 +808,6 @@ wheels = [
 ]
 
 [[package]]
-name = "music-tag"
-version = "0.4.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "mutagen" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/fc/f4/ebcdd2fc9bfaf569b795250090e4f4088dc65a5a3e32c53baa9bfc3fc296/music-tag-0.4.3.tar.gz", hash = "sha256:0aab6e6eeda8df0f5316ec2d2190bd74561b7e03562ab091ce8d5687cdbcfff6", size = 23153 }
-
-[[package]]
 name = "mutagen"
 version = "1.47.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1551,7 +1542,6 @@ dependencies = [
     { name = "cachetools" },
     { name = "fluent-runtime" },
     { name = "httpx" },
-    { name = "music-tag" },
     { name = "pyyaml" },
     { name = "redis" },
     { name = "spotdl" },
@@ -1572,7 +1562,6 @@ requires-dist = [
     { name = "cachetools", specifier = ">=5.3" },
     { name = "fluent-runtime", specifier = ">=0.4" },
     { name = "httpx", specifier = ">=0.28" },
-    { name = "music-tag", specifier = ">=0.4" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "redis", specifier = ">=5.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8,<1.0" },

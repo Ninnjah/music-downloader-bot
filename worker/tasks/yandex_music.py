@@ -4,8 +4,10 @@ from pathlib import Path
 from typing import Optional, Tuple, Union
 
 import httpx
-import music_tag
-from mutagen.mp3 import MP3
+from mutagen._file import File
+from mutagen.id3 import ID3
+from mutagen.id3._frames import APIC, COMM, USLT
+from mutagen.id3._specs import Encoding
 from yandex_music import Album, Artist, Client, Playlist, Track
 from yandex_music.exceptions import NotFoundError, YandexMusicError
 
@@ -97,30 +99,28 @@ def _download_track(track: Track) -> Path:
     )
     if os.path.exists(track_file):
         logger.info("Track already exists. Continue.")
-        return track_file
-
-    client.request.download(url=track_info["direct_link"], filename=track_file)
+    else:
+        client.request.download(url=track_info["direct_link"], filename=track_file)
     logger.info("Track downloaded. Start write tag's.")
 
     # Add metadata to track
-    mp3 = music_tag.load_file(track_file)
-    mp3["tracktitle"] = info["title"]
-    if album["version"] is not None:
-        mp3["album"] = info["album"] + " " + album["version"]
-    else:
-        mp3["album"] = info["album"]
-    mp3["discnumber"] = info["volume_number"]
-    mp3["totaldiscs"] = info["total_volumes"]
-    mp3["tracknumber"] = info["track_position"]
-    mp3["totaltracks"] = info["total_track"]
-    mp3["genre"] = info["genre"]
-    mp3["year"] = info["album_year"]
-    if track.version is not None:
-        mp3["comment"] = f"{track.version} / Release date {info['album_year']}"
-    else:
-        mp3["comment"] = f"Release date {info['album_year']}"
-    mp3["artist"] = info["artist"]
-    mp3["album_artist"] = info["album_artist"]
+    encoding = track_file.suffix[1:]
+    audio_file = File(str(track_file.resolve()), easy=encoding == "mp3")
+    
+    audio_file["artist"] = info["artist"]
+    audio_file["albumartist"] = info["album_artist"]
+    audio_file["title"] = info["title"]
+    audio_file["date"] = info["album_year"]
+    audio_file["album"] = info["album"]
+    if info["genre"]:
+        audio_file["genre"] = info["genre"].title()
+
+    audio_file["tracknumber"] = f"{str(info['track_position'])}/{str(info['total_track'])}"
+    audio_file["discnumber"] = str(info['volume_number'])
+
+    audio_file.save(v2_version=3)
+    audio_file = ID3(str(track_file.resolve()))
+    
     try:
         lyrics = client.tracks_lyrics(
             track_id=track.track_id, format="LRC"
@@ -132,11 +132,21 @@ def _download_track(track: Track) -> Path:
     else:
         with open(track_file.with_suffix(".lrc"), "w") as text_song:
             text_song.write(lyrics)
-        mp3["lyrics"] = lyrics
+
+        audio_file.add(USLT(encoding=Encoding.UTF8, text=lyrics))
 
     with open(album_cover_pic, "rb") as img_in:
-        mp3["artwork"] = img_in.read()
-    mp3.save()
+        if "APIC:Cover" in audio_file.keys():
+            audio_file.pop("APIC:Cover")
+        audio_file["APIC"] = APIC(
+            encoding=3,
+            mime="image/jpeg",
+            type=3,
+            desc="Cover",
+            data=img_in.read(),
+        )
+
+    audio_file.save(v2_version=3)
     logger.info("Tag's is wrote")
 
     return track_file

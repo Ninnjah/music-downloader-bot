@@ -11,7 +11,6 @@ dependencies = [
     "redis>=5.0",
     "cachetools>=5.3",
     "fluent.runtime>=0.4",
-    "music-tag>=0.4",
     "yandex-music>=2.2",
     "spotdl>=4.2",
     "taskiq-redis>=1.0",
