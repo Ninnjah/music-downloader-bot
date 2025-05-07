@@ -1,15 +1,20 @@
 # temp stage
-FROM python:3.10-slim-buster AS builder
+FROM python:3.10-slim-bookworm AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates git
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+ENV PATH="/root/.local/bin/:$PATH"
+ENV UV_COMPILE_BYTECODE=1
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
 # Install dependencies
+WORKDIR /app
 COPY pyproject.toml .
-RUN pip install -U pip && pip install --no-cache-dir -e .
+RUN uv sync --no-cache --no-install-project
 
 # final stage
 FROM python:3.10-slim-buster AS production
@@ -23,8 +28,8 @@ RUN apt-get update -q \
 
 WORKDIR /app
 
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 

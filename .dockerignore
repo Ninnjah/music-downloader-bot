@@ -30,7 +30,6 @@ MANIFEST
 test/
 systemd/
 build/
-music/
 .vscode/
 venv/
 .venv/

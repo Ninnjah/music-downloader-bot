@@ -1,68 +1,65 @@
-from dataclasses import dataclass
-from os import path
 from pathlib import Path
-from sys import argv
 from typing import List, Optional, Union
 
-import yaml
-from adaptix import Retort
-
-retort = Retort()
-if len(argv) > 1 and path.exists(argv[1]):
-    config_path = argv[1]
-else:
-    config_path = "config.yaml"
+from environ import bool_var, config, group, to_config, var
 
 
-@dataclass(frozen=True)
+def admin_loader(value):
+    return list(map(int, value.split(",")))
+
+
+@config(prefix="REDIS_")
 class Redis:
-    enabled: bool
-    prefix: str
-    host: str = "localhost"
-    port: int = 6379
-    db: Union[str, int] = 0
-    password: Optional[str] = None
+    enabled: bool = bool_var()
+    prefix: str = var()
+    host: str = var(default="localhost")
+    port: int = var(default=6379)
+    db: Union[str, int] = var(default=0)
+    password: Optional[str] = var(default=None)
 
 
-@dataclass(frozen=True)
+@config(prefix="WEBHOOK_")
 class Webhook:
-    enabled: bool
-    url: Optional[str] = None
-    path: Optional[str] = None
-    port: Optional[int] = None
+    enabled: bool = bool_var()
+    url: Optional[str] = var(default=None)
+    path: Optional[str] = var(default=None)
+    port: Optional[int] = var(default=None)
 
 
-@dataclass(frozen=True)
+@config(prefix="YANDEX_")
 class Yandex:
-    token: str
+    token: str = var()
 
 
-@dataclass(frozen=True)
+@config(prefix="SPOTIFY_")
 class Spotify:
-    id: str
-    secret: str
-    proxy: Optional[str] = None
+    id: str = var()
+    secret: str = var()
+    proxy: Optional[str] = var(default=None)
 
 
-@dataclass(frozen=True)
+@config(prefix="SUBSONIC_")
 class Subsonic:
-    username: str
-    password: str
-    salt: str
+    username: str = var()
+    password: str = var()
+    salt: str = var()
 
 
-@dataclass(frozen=True)
+@config(prefix="")
 class Config:
-    bot_token: str
-    admin_list: List[int]
-    redis: Redis
-    webhook: Webhook
-    yandex: Yandex
-    spotify: Spotify
-    music_path: Path
-    subsonic: Subsonic
+    bot_token: str = var()
+    admin_list: List[int] = var(converter=admin_loader)
+    music_path: Path = var(default="/app/music", converter=Path)
+
+    redis: Redis = group(Redis)
+    webhook: Webhook = group(Webhook)
+    yandex: Yandex = group(Yandex)
+    spotify: Spotify = group(Spotify)
+    subsonic: Subsonic = group(Subsonic)
 
 
-with open(config_path, "r") as f:
-    raw_config = yaml.safe_load(f.read())
-    config = retort.load(raw_config, Config)
+def get_config() -> Config:
+    return to_config(Config)
+
+
+config = get_config()

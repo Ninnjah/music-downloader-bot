@@ -5,9 +5,7 @@ requires-python = ">=3.9"
 dependencies = [
     "aiogram-dialog~=2.2",
     "aiogram~=3.13",
-    "adaptix>=3.0.0b8",
     "httpx>=0.28",
-    "PyYAML>=6.0",
     "redis>=5.0",
     "cachetools>=5.3",
     "fluent.runtime>=0.4",
@@ -15,6 +13,7 @@ dependencies = [
     "spotdl>=4.2",
     "taskiq-redis>=1.0",
     "taskiq==0.11.16",
+    "environ-config>=24.1.0",
 ]
 
 [project.optional-dependencies]

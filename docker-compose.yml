@@ -9,10 +9,6 @@ services:
   bot:
     extends:
       service: _image
-    volumes:
-      - type: bind
-        source: /usr/share/music-downloader/config.yaml
-        target: /app/config.yaml
     depends_on:
       - redis
       - _image
@@ -25,9 +21,6 @@ services:
     extends:
       service: _image
     volumes:
-      - type: bind
-        source: /usr/share/music-downloader/config.yaml
-        target: /app/config.yaml
       - type: bind
         source: /usr/share/music-downloader/music
         target: /app/music
