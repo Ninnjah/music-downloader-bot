@@ -6,8 +6,9 @@ from typing import Optional, Tuple, Union
 import httpx
 from mutagen._file import File
 from mutagen.id3 import ID3
-from mutagen.id3._frames import APIC, COMM, USLT
+from mutagen.id3._frames import APIC, USLT
 from mutagen.id3._specs import Encoding
+from mutagen.mp3 import MP3
 from yandex_music import Album, Artist, Client, Playlist, Track
 from yandex_music.exceptions import NotFoundError, YandexMusicError
 
