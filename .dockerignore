@@ -30,4 +30,8 @@ MANIFEST
 test/
 systemd/
 build/
+music/
+.vscode/
+venv/
+.venv/
 telegram_template.egg-info/
