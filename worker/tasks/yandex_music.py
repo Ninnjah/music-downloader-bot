@@ -124,7 +124,7 @@ def _download_track(track: Track) -> Path:
     
     try:
         lyrics = client.tracks_lyrics(
-            track_id=track.track_id, format="LRC"
+            track_id=track.track_id, format_="LRC"
         ).fetch_lyrics()
     except NotFoundError:
         pass
