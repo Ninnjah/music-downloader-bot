@@ -1,20 +1,25 @@
 # temp stage
 FROM python:3.10-slim-bookworm AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates git
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-RUN sh /uv-installer.sh && rm /uv-installer.sh
-
-ENV PATH="/root/.local/bin/:$PATH"
-ENV UV_COMPILE_BYTECODE=1
+RUN apt-get update && apt-get install -y --no-install-recommends git
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Install dependencies
 WORKDIR /app
-COPY pyproject.toml .
-RUN uv sync --no-cache --no-install-project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-editable
+
+# Copy the project into the intermediate image
+ADD . /app
+
+# Sync the project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-editable
 
 # final stage
 FROM python:3.10-slim-buster AS production
@@ -28,10 +33,10 @@ RUN apt-get update -q \
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder --chown=app:app /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 
-COPY . .
+COPY . /app
 CMD ["python", "bot.py"]
