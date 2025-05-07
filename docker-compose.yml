@@ -1,33 +1,45 @@
 services:
-  _image:
-    image: ninnjah52/music-downloader
+  main_image:
+    image: ninnjah52/music-downloader:latest
     command: ["echo", "build completed"]
-
+    environment:
+      PYTHONUNBUFFERED: 1
+      ADMIN_LIST: ${ADMIN_LIST}
+      BOT_TOKEN: ${BOT_TOKEN}
+      YANDEX__TOKEN: ${YANDEX__TOKEN}
+      SPOTIFY__ID: ${SPOTIFY__ID}
+      SPOTIFY__SECRET: ${SPOTIFY__SECRET}
+      SUBSONIC__USERNAME: ${SUBSONIC__USERNAME}
+      SUBSONIC__PASSWORD: ${SUBSONIC__PASSWORD}
+      SUBSONIC__SALT: ${SUBSONIC__SALT}
+      REDIS__ENABLED: ${REDIS__ENABLED}
+      REDIS__PREFIX: ${REDIS__PREFIX}
+      REDIS__HOST: ${REDIS__HOST}
+      REDIS__PORT: ${REDIS__PORT}
+      REDIS__DB: ${REDIS__DB}
+      REDIS__PASSWORD: ${REDIS__PASSWORD}
+      WEBHOOK__ENABLED: ${WEBHOOK__ENABLED}
+      WEBHOOK__URL: ${WEBHOOK__URL}
+      WEBHOOK__PATH: ${WEBHOOK__PATH}
+      WEBHOOK__PORT: ${WEBHOOK__PORT}
+  
   redis:
     image: "redis:alpine"
 
   bot:
     extends:
-      service: _image
+      service: main_image
     depends_on:
       - redis
-      - _image
-    environment:
-      - PYTHONUNBUFFERED=1
     command: python bot.py
     restart: on-failure
 
   worker:
     extends:
-      service: _image
+      service: main_image
     volumes:
-      - type: bind
-        source: /usr/share/music-downloader/music
-        target: /app/music
+      - "${MUSIC_PATH}:/app/music"
     depends_on:
       - redis
-      - _image
-    environment:
-      - PYTHONUNBUFFERED=1
     command: taskiq worker worker_app:broker worker.tasks --log-level INFO --workers=2
     restart: always
