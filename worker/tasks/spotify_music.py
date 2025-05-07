@@ -5,7 +5,9 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import httpx
-import music_tag
+from mutagen.id3 import ID3
+from mutagen.id3._frames import USLT
+from mutagen.id3._specs import Encoding
 from spotdl import Spotdl
 from spotdl.types.options import DownloaderOptionalOptions
 from spotdl.types.song import Song
@@ -57,9 +59,9 @@ async def _download_track(song: Song) -> Tuple[Song, Optional[Path]]:
     lrc_path = track_path.with_suffix(".lrc")
     if lrc_path.exists():
         with lrc_path.open() as f:
-            mp3 = music_tag.load_file(track_path)
-            mp3["lyrics"] = f.read()
-            mp3.save()
+            audio_file = ID3(str(track_path.resolve()))
+            audio_file.add(USLT(encoding=Encoding.UTF8, text=f.read()))
+            audio_file.save(v2_version=3)
 
     return track, track_path
 
