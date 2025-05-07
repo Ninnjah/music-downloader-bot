@@ -1545,6 +1545,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "redis" },
     { name = "spotdl" },
+    { name = "taskiq" },
     { name = "taskiq-redis" },
     { name = "yandex-music" },
 ]
@@ -1566,6 +1567,7 @@ requires-dist = [
     { name = "redis", specifier = ">=5.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8,<1.0" },
     { name = "spotdl", specifier = ">=4.2" },
+    { name = "taskiq", specifier = "==0.11.16" },
     { name = "taskiq-redis", specifier = ">=1.0" },
     { name = "yandex-music", git = "https://github.com/MarshalX/yandex-music-api?branch=main" },
 ]
