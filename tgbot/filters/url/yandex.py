@@ -21,12 +21,12 @@ class YandexUrlFilter(UrlFilterProtocol):
 
             raw_data = url.split(self.URL_PREFIX)[-1].split("?")[0].split("/")
 
-            if raw_data[0] == "users" and len(raw_data) == 4:
-                parsed_urls["playlist"].append(Playlist(url=url, id=raw_data[3], owner=raw_data[1]))
+            if raw_data[0] == "playlists" and 2 <= len(raw_data) < 4:
+                parsed_urls["playlist"].append(Playlist(url=url, id=raw_data[1]))
             elif raw_data[0] == "album" and 2 <= len(raw_data) < 4:
                 parsed_urls["album"].append(Album(url=url, id=raw_data[1]))
-            elif raw_data[0] == "album" and len(raw_data) == 4:
-                parsed_urls["track"].append(Track(url=url, id=raw_data[3]))
+            elif raw_data[0] == "track":
+                parsed_urls["track"].append(Track(url=url, id=raw_data[1]))
             elif raw_data[0] == "artist" and 2 <= len(raw_data) < 4:
                 parsed_urls["artist"].append(Artist(url=url, id=raw_data[1]))
         

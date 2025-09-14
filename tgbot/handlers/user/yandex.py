@@ -61,7 +61,7 @@ async def yandex_url(m: Message, l10n: FluentLocalization, urls: UrlList):
 
     elif urls.playlist:
         playlist = urls.playlist[0]
-        playlist_info = (await (await get_playlist_info.kiq(playlist.owner, playlist.id)).wait_result()).return_value
+        playlist_info = (await (await get_playlist_info.kiq(playlist.id)).wait_result()).return_value
 
         msg = await m.answer(
             l10n.format_value(
@@ -74,7 +74,6 @@ async def yandex_url(m: Message, l10n: FluentLocalization, urls: UrlList):
         )
         await download_playlist.kiq(
             user_id=m.from_user.id,
-            owner_id=playlist.owner,
             playlist_id=playlist.id,
             reply_to_msg=msg.message_id,
         )

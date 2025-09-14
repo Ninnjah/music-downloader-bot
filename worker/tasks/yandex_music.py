@@ -219,13 +219,13 @@ def download_artist(user_id: int, artist_id: Union[str, int], **kwargs) -> Optio
 
 
 @broker.task()
-def get_playlist_info(owner_id: str, playlist_id: int, **kwargs) -> Optional[Playlist]:
+def get_playlist_info(playlist_id: int, **kwargs) -> Optional[Playlist]:
     try:
-        playlist = client.users_playlists(playlist_id, owner_id)
+        playlist = client.users_playlists(playlist_id)
     except YandexMusicError as e:
         logger.warning(
-            "No results found for owner_id=%s; playlist_id=%s - %s",
-            owner_id, playlist_id, e, exc_info=True,
+            "No results found for playlist_id=%s - %s",
+            playlist_id, e, exc_info=True,
         )
     else:
         if isinstance(playlist, list):
@@ -234,8 +234,8 @@ def get_playlist_info(owner_id: str, playlist_id: int, **kwargs) -> Optional[Pla
 
 
 @broker.task(note=YandexNoteMiddleware.LABEL)
-def download_playlist(user_id: int, owner_id: str, playlist_id: int, **kwargs) -> Optional[Playlist]:
-    if not (playlist := get_playlist_info(owner_id, playlist_id)):
+def download_playlist(user_id: int, playlist_id: int, **kwargs) -> Optional[Playlist]:
+    if not (playlist := get_playlist_info(playlist_id)):
         return
 
     playlist_entries = []
